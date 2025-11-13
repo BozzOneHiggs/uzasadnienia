@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator uzasadnień</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Generator uzasadnień do orzeczeń</h1>
+
+    <div id="app">
+        <section id="wniosek">
+            <h2>Wniosek</h2>
+            <label for="zn_numer_sprawy">Numer sprawy</label>
+            <div style="display: flex;">
+                <input type="text" id="zn_numer_sprawy" value="ZN.8321." style="flex-grow: 1;">
+                <button id="wyszukaj_btn" style="margin-left: 10px;">Wyszukaj</button>
+            </div>
+
+            <label for="wniosek_data_zlozenia">Data złożenia wniosku</label>
+            <input type="text" id="wniosek_data_zlozenia" placeholder="dd.mm.yyyy">
+
+            <label for="wniosek_plec">Pana/Pani</label>
+            <select id="wniosek_plec">
+                <option value="Pana">Pana</option>
+                <option value="Pani">Pani</option>
+                <option value="małoletniego">małoletniego</option>
+                <option value="małoletniej">małoletniej</option>
+            </select>
+
+            <label for="wniosek_imie_nazwisko_1">Imię i Nazwisko orzekanego (odmiana Jana Kowalskiego, Janiny Kowalskiej)</label>
+            <input type="text" id="wniosek_imie_nazwisko_1">
+
+            <label for="wniosek_imie_nazwisko_2">Imię i Nazwisko orzekanego (odmiana Jana Kowalskiego, Janinę Kowalską)</label>
+            <input type="text" id="wniosek_imie_nazwisko_2">
+
+            <label for="wniosek_opiekun">Opiekun (odmiana Jana Kowalskiego, Janiny Kowalskiej)</label>
+            <input type="text" id="wniosek_opiekun">
+
+            <label for="wniosek_typ">Wniosek złożony</label>
+            <select id="wniosek_typ">
+                <option value="pierwszy raz">pierwszy raz</option>
+                <option value="przedłużenie">przedłużenie</option>
+                <option value="pogorszenie">pogorszenie</option>
+                <option value="po przerwie">po przerwie</option>
+                <option value="karta parkingowa">karta parkingowa</option>
+                <option value="był niezaliczony">był niezaliczony</option>
+            </select>
+        </section>
+
+        <section id="sekcja-poprzednie-orzeczenie" style="display: none;">
+            <h2>Poprzednie orzeczenie</h2>
+            <label for="po_data_komisji">Data komisji</label>
+            <input type="text" id="po_data_komisji" placeholder="dd.mm.yyyy">
+
+            <label for="po_specjalista">Specjalista</label>
+            <select id="po_specjalista">
+                <option value="doradca zawodowy">doradca zawodowy</option>
+                <option value="pedagog">pedagog</option>
+                <option value="psycholog">psycholog</option>
+                <option value="pracownik socjalny">pracownik socjalny</option>
+            </select>
+
+            <label>Daty zaświadczeń lekarskich</label>
+            <div id="po_daty_zaswiadczen_kontener">
+                <input type="text" placeholder="dd.mm.yyyy" class="po_data_zaswiadczenia">
+            </div>
+            <button id="dodaj_date_zaswiadczenia">+</button>
+
+            <label for="po_rodzaj_decyzji">Rodzaj decyzji</label>
+            <select id="po_rodzaj_decyzji">
+                <option value="orzeczenia Nr">orzeczenia Nr</option>
+                <option value="wyroku w imieniu Rzeczpospolitej Polskiej o Sygn. Akt">wyroku w imieniu Rzeczpospolitej Polskiej o Sygn. Akt</option>
+            </select>
+
+            <label for="po_wydane_przez">Wydane przez</label>
+            <select id="po_wydane_przez"></select>
+            <button id="edytuj_wydane_przez">Edytuj szablony</button>
+
+            <label for="po_numer_starego">Numer starego orzeczenia</label>
+            <input type="text" id="po_numer_starego">
+
+            <label for="po_data_starego">Data starego orzeczenia</label>
+            <input type="text" id="po_data_starego" placeholder="dd.mm.yyyy">
+
+            <label for="po_stopien_starego">Stopień starego orzeczenia</label>
+            <select id="po_stopien_starego">
+                <option value="lekkiego stopnia niepełnosprawności">lekkiego stopnia niepełnosprawności</option>
+                <option value="umiarkowanego stopnia niepełnosprawności">umiarkowanego stopnia niepełnosprawności</option>
+                <option value="znacznego stopnia niepełnosprawności">znacznego stopnia niepełnosprawności</option>
+                <option value="nie zaliczono dorosły">nie zaliczono dorosły</option>
+                <option value="osób niepełnosprawnych">osób niepełnosprawnych</option>
+                <option value="nie zaliczono dziecko">nie zaliczono dziecko</option>
+            </select>
+
+            <label for="po_waznosc_starego_data">Ważność starego orzeczenia</label>
+            <input type="text" id="po_waznosc_starego_data" placeholder="dd.mm.yyyy">
+            <input type="checkbox" id="po_waznosc_starego_trwale">
+            <label for="po_waznosc_starego_trwale">Na stałe</label>
+        </section>
+
+        <section id="decyzja">
+            <h2>Decyzja</h2>
+            <input type="checkbox" id="decyzja_zaocznie">
+            <label for="decyzja_zaocznie">Zaocznie</label>
+
+            <label for="decyzja_zaliczono_do">Zaliczono do</label>
+            <select id="decyzja_zaliczono_do">
+                <option value="lekkiego stopnia niepełnosprawności">lekkiego stopnia niepełnosprawności</option>
+                <option value="umiarkowanego stopnia niepełnosprawności">umiarkowanego stopnia niepełnosprawności</option>
+                <option value="znacznego stopnia niepełnosprawności">znacznego stopnia niepełnosprawności</option>
+                <option value="nie zaliczono dorosły">nie zaliczono dorosły</option>
+                <option value="osób niepełnosprawnych">osób niepełnosprawnych</option>
+                <option value="nie zaliczono dziecko">nie zaliczono dziecko</option>
+            </select>
+
+            <div id="decyzja_punkt1_kontener" style="display: none;">
+                <label for="decyzja_punkt1">Punkt 1</label>
+                <select id="decyzja_punkt1"></select>
+                <button id="edytuj_punkt1">Edytuj szablony</button>
+            </div>
+
+            <input type="checkbox" id="decyzja_punkt7">
+            <label for="decyzja_punkt7">Punkt 7</label>
+
+            <input type="checkbox" id="decyzja_punkt8">
+            <label for="decyzja_punkt8">Punkt 8</label>
+
+            <label for="decyzja_waznosc_data">Ważność orzeczenia</label>
+            <input type="text" id="decyzja_waznosc_data" placeholder="dd.mm.yyyy">
+            <input type="checkbox" id="decyzja_waznosc_trwale">
+            <label for="decyzja_waznosc_trwale">Na stałe</label>
+
+            <label>Symbole</label>
+            <div id="symbole_kontener">
+                <select id="decyzja_symbol_1">
+                    <option value=""></option>
+                    <option value="01-U">01-U</option>
+                    <option value="02-P">02-P</option>
+                    <option value="03-L">03-L</option>
+                    <option value="04-O">04-O</option>
+                    <option value="05-R">05-R</option>
+                    <option value="06-E">06-E</option>
+                    <option value="07-S">07-S</option>
+                    <option value="08-T">08-T</option>
+                    <option value="09-M">09-M</option>
+                    <option value="10-N">10-N</option>
+                    <option value="11-I">11-I</option>
+                    <option value="12-C">12-C</option>
+                </select>
+                <select id="decyzja_symbol_2">
+                    <option value=""></option>
+                    <option value="01-U">01-U</option>
+                    <option value="02-P">02-P</option>
+                    <option value="03-L">03-L</option>
+                    <option value="04-O">04-O</option>
+                    <option value="05-R">05-R</option>
+                    <option value="06-E">06-E</option>
+                    <option value="07-S">07-S</option>
+                    <option value="08-T">08-T</option>
+                    <option value="09-M">09-M</option>
+                    <option value="10-N">10-N</option>
+                    <option value="11-I">11-I</option>
+                    <option value="12-C">12-C</option>
+                </select>
+                <select id="decyzja_symbol_3">
+                    <option value=""></option>
+                    <option value="01-U">01-U</option>
+                    <option value="02-P">02-P</option>
+                    <option value="03-L">03-L</option>
+                    <option value="04-O">04-O</option>
+                    <option value="05-R">05-R</option>
+                    <option value="06-E">06-E</option>
+                    <option value="07-S">07-S</option>
+                    <option value="08-T">08-T</option>
+                    <option value="09-M">09-M</option>
+                    <option value="10-N">10-N</option>
+                    <option value="11-I">11-I</option>
+                    <option value="12-C">12-C</option>
+                </select>
+            </div>
+        </section>
+
+        <section id="zmienne-zarzadzanie">
+            <h2>Zarządzanie zmiennymi</h2>
+            <div class="zmienna-editor">
+                <h3>Edytor zmiennej</h3>
+                <input type="hidden" id="zmienna_id">
+                <label for="zmienna_nazwa">Nazwa zmiennej</label>
+                <input type="text" id="zmienna_nazwa" placeholder="Np. miasto_wydania">
+
+                <label for="zmienna_wartosc">Wartość zmiennej</label>
+                <input type="text" id="zmienna_wartosc" placeholder="Np. Warszawa">
+
+                <button id="zapisz_zmienna_btn">Zapisz zmienną</button>
+                <button id="anuluj_edycje_zmiennej_btn" style="display: none;">Anuluj</button>
+            </div>
+            <div class="lista-zmiennych-kontener">
+                <h3>Zapisane zmienne</h3>
+                <ul id="lista_zmiennych">
+                    <!-- Zmienne będą dynamicznie dodawane tutaj -->
+                </ul>
+            </div>
+        </section>
+
+        <section id="szablony-zarzadzanie">
+            <h2>Zarządzanie szablonami uzasadnień</h2>
+
+            <div class="szablon-editor">
+                <h3>Edytor szablonu</h3>
+                <input type="hidden" id="szablon_id">
+                <label for="szablon_nazwa">Nazwa szablonu</label>
+                <input type="text" id="szablon_nazwa" placeholder="Np. Umiarkowany na stałe">
+
+                <label for="szablon_weryfikacja">Warunek weryfikacji</label>
+                <input type="text" id="szablon_weryfikacja" placeholder="if {decyzja_zaliczono_do} == &quot;umiarkowanego stopnia niepełnosprawności&quot;">
+
+                <label for="szablon_tekst">Tekst szablonu</label>
+                <textarea id="szablon_tekst" rows="10" placeholder="Wpisz treść uzasadnienia..."></textarea>
+
+                <button id="zapisz_szablon_btn">Zapisz szablon</button>
+                <button id="anuluj_edycje_btn" style="display: none;">Anuluj edycję</button>
+            </div>
+
+            <div class="lista-szablonow-kontener">
+                <h3>Zapisane szablony</h3>
+                <ul id="lista_szablonow">
+                    <!-- Szablony będą dynamicznie dodawane tutaj przez JS -->
+                </ul>
+            </div>
+
+            <h3>Podgląd wygenerowanego uzasadnienia</h3>
+            <div id="podglad_uzasadnienia" style="border: 1px solid #eee; padding: 10px; min-height: 100px; background: #f9f9f9;"></div>
+        </section>
+
+        <button id="zapisz_dane_orzeczenia_btn" style="grid-column: span 2; width: 100%; padding: 15px; background-color: #28a745; font-size: 16px;">Zapisz dane orzeczenia</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
+    <script src="script.js"></script>
+</body>
+</html>
