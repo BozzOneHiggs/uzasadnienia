@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Uzasadnień</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .modal { display: none; }
+        .modal.active { display: flex; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-2 text-center">Generator Uzasadnień do Orzeczeń</h1>
+        <p id="status-text" class="text-center text-lg font-semibold mb-6 text-gray-500">Łączenie...</p>
+
+        <!-- Sekcja WNIOSEK -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">WNIOSEK</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="numer-sprawy" class="block text-sm font-medium text-gray-700">Numer sprawy (numer-sprawy)</label>
+                    <input type="text" id="numer-sprawy" value="ZN.8321." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="data-zlozenia-wniosku" class="block text-sm font-medium text-gray-700">Data złożenia wniosku (data-zlozenia-wniosku)</label>
+                    <input type="text" id="data-zlozenia-wniosku" placeholder="dd.mm.rrrr" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="plec" class="block text-sm font-medium text-gray-700">Pana/Pani (plec)</label>
+                    <select id="plec" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option>Pana</option>
+                        <option>Pani</option>
+                        <option>małoletniego</option>
+                        <option>małoletniej</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="imie-nazwisko-dopelniacz" class="block text-sm font-medium text-gray-700">Imię i Nazwisko orzekanego (kogo, czego?) (imie-nazwisko-dopelniacz)</label>
+                    <input type="text" id="imie-nazwisko-dopelniacz" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="imie-nazwisko-biernik" class="block text-sm font-medium text-gray-700">Imię i Nazwisko orzekanego (kogo, co?) (imie-nazwisko-biernik)</label>
+                    <input type="text" id="imie-nazwisko-biernik" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="opiekun-dopelniacz" class="block text-sm font-medium text-gray-700">Opiekun (kogo, czego?) (opiekun-dopelniacz)</label>
+                    <input type="text" id="opiekun-dopelniacz" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="wniosek-zlozony" class="block text-sm font-medium text-gray-700">Wniosek złożony (wniosek-zlozony)</label>
+                    <select id="wniosek-zlozony" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="pierwszy raz">pierwszy raz</option>
+                        <option value="przedłużenie">przedłużenie</option>
+                        <option value="pogorszenie">pogorszenie</option>
+                        <option value="po przerwie">po przerwie</option>
+                        <option value="karta parkingowa">karta parkingowa</option>
+                        <option value="był niezaliczony">był niezaliczony</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sekcja Poprzednie orzeczenie -->
+        <div id="sekcja-poprzednie-orzeczenie" class="bg-white p-6 rounded-lg shadow-md mb-6 hidden">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">POPPRZEDNIE ORZECZENIE</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="rodzaj-decyzji" class="block text-sm font-medium text-gray-700">Rodzaj decyzji (rodzaj-decyzji)</label>
+                    <select id="rodzaj-decyzji" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option>orzeczenia Nr</option>
+                        <option>wyroku w imieniu Rzeczpospolitej Polskiej o Sygn. Akt</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="wydane-przez-lista" class="block text-sm font-medium text-gray-700">Wydane przez (wydane-przez-lista)</label>
+                    <div class="flex items-center">
+                        <select id="wydane-przez-lista" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                        <button id="zarzadzaj-wydane-przez" class="ml-2 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600">Zarządzaj</button>
+                    </div>
+                </div>
+                <div>
+                    <label for="numer-starego-orzeczenia" class="block text-sm font-medium text-gray-700">Numer starego orzeczenia (numer-starego-orzeczenia)</label>
+                    <input type="text" id="numer-starego-orzeczenia" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="data-starego-orzeczenia" class="block text-sm font-medium text-gray-700">Data starego orzeczenia (data-starego-orzeczenia)</label>
+                    <input type="text" id="data-starego-orzeczenia" placeholder="dd.mm.rrrr" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                 <div>
+                    <label for="stopien-starego-orzeczenia" class="block text-sm font-medium text-gray-700">Stopień starego orzeczenia (stopien-starego-orzeczenia)</label>
+                    <select id="stopien-starego-orzeczenia" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option>lekkiego stopnia niepełnosprawności</option>
+                        <option>umiarkowanego stopnia niepełnosprawności</option>
+                        <option>znacznego stopnia niepełnosprawności</option>
+                        <option>nie zaliczono dorosły</option>
+                        <option>osób niepełnosprawnych</option>
+                        <option>nie zaliczono dziecko</option>
+                    </select>
+                </div>
+                <div class="flex items-center">
+                    <label for="waznosc-starego-data" class="block text-sm font-medium text-gray-700">Ważność starego orzeczenia (waznosc-starego-data)</label>
+                    <input type="text" id="waznosc-starego-data" placeholder="dd.mm.rrrr" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <input type="checkbox" id="waznosc-starego-trwale" class="ml-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="waznosc-starego-trwale" class="ml-2 block text-sm text-gray-900">Na stałe</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sekcja Decyzja -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">DECYZJA</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="data-komisji" class="block text-sm font-medium text-gray-700">Data komisji (data-komisji)</label>
+                    <input type="text" id="data-komisji" placeholder="dd.mm.rrrr" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="specjalista" class="block text-sm font-medium text-gray-700">Specjalista (specjalista)</label>
+                    <select id="specjalista" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option>doradca zawodowy</option>
+                        <option>pedagog</option>
+                        <option>psycholog</option>
+                        <option>pracownik socjalny</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Daty zaświadczeń lekarskich</label>
+                    <div id="daty-zaswiadczen-lekarskich-kontener">
+                         <input type="text" name="data-zaswiadczenia" placeholder="dd.mm.rrrr" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <button id="dodaj-date-zaswiadczenia" class="mt-2 py-1 px-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm">Dodaj datę</button>
+                </div>
+                 <div class="flex items-center">
+                    <input type="checkbox" id="zaocznie" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="zaocznie" class="ml-2 block text-sm text-gray-900">Zaocznie (zaocznie)</label>
+                </div>
+                <div>
+                    <label for="zaliczono-do" class="block text-sm font-medium text-gray-700">Zaliczono do (zaliczono-do)</label>
+                    <select id="zaliczono-do" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option>lekkiego stopnia niepełnosprawności</option>
+                        <option>umiarkowanego stopnia niepełnosprawności</option>
+                        <option>znacznego stopnia niepełnosprawności</option>
+                        <option>nie zaliczono dorosły</option>
+                        <option>osób niepełnosprawnych</option>
+                        <option>nie zaliczono dziecko</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="punkt1-lista" class="block text-sm font-medium text-gray-700">Punkt 1 (punkt1-lista)</label>
+                     <div class="flex items-center">
+                        <select id="punkt1-lista" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                        <button id="zarzadzaj-punkt1" class="ml-2 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600">Zarządzaj</button>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="punkt7" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="punkt7" class="ml-2 block text-sm text-gray-900">Punkt 7 (punkt7)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="punkt8" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="punkt8" class="ml-2 block text-sm text-gray-900">Punkt 8 (punkt8)</label>
+                </div>
+                <div class="flex items-center">
+                    <label for="waznosc-nowego-data" class="block text-sm font-medium text-gray-700">Ważność orzeczenia (waznosc-nowego-data)</label>
+                    <input type="text" id="waznosc-nowego-data" placeholder="dd.mm.rrrr" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <input type="checkbox" id="waznosc-nowego-trwale" class="ml-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="waznosc-nowego-trwale" class="ml-2 block text-sm text-gray-900">Na stałe</label>
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Symbole</label>
+                    <div class="grid grid-cols-3 gap-2">
+                         <select id="symbol-1" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option></option> <option>01-U</option> <option>02-P</option> <option>03-L</option> <option>04-O</option> <option>05-R</option> <option>06-E</option> <option>07-S</option> <option>08-T</option> <option>09-M</option> <option>10-N</option> <option>11-I</option> <option>12-C</option>
+                         </select>
+                         <select id="symbol-2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                             <option></option> <option>01-U</option> <option>02-P</option> <option>03-L</option> <option>04-O</option> <option>05-R</option> <option>06-E</option> <option>07-S</option> <option>08-T</option> <option>09-M</option> <option>10-N</option> <option>11-I</option> <option>12-C</option>
+                         </select>
+                         <select id="symbol-3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option></option> <option>01-U</option> <option>02-P</option> <option>03-L</option> <option>04-O</option> <option>05-R</option> <option>06-E</option> <option>07-S</option> <option>08-T</option> <option>09-M</option> <option>10-N</option> <option>11-I</option> <option>12-C</option>
+                         </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sekcja Przyciski Główne -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6 flex justify-center gap-4">
+             <button id="wyszukaj" class="py-2 px-6 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700">Wyszukaj</button>
+             <button id="zapisz" class="py-2 px-6 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700">Zapisz</button>
+        </div>
+
+        <!-- Sekcja Uzasadnienie -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">UZASADNIENIE</h2>
+            <div class="flex justify-end mb-4">
+                <button id="zarzadzaj-szablonami-btn" class="py-2 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600">Zarządzaj Szablonami</button>
+                <button id="zarzadzaj-zmiennymi-btn" class="ml-2 py-2 px-4 bg-orange-500 text-white rounded-md hover:bg-orange-600">Zarządzaj Zmiennymi</button>
+            </div>
+            <textarea id="wygenerowane-uzasadnienie" rows="15" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-50" readonly></textarea>
+        </div>
+    </div>
+
+    <!-- Modal Zarządzania Szablonami Uzasadnień -->
+    <div id="modal-szablony" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 p-6">
+            <h3 class="text-2xl font-bold mb-4">Zarządzaj Szablonami Uzasadnień</h3>
+            <div class="max-h-96 overflow-y-auto" id="lista-szablonow"></div>
+            <div class="mt-4 border-t pt-4">
+                <input type="hidden" id="szablon-id">
+                <input type="text" id="szablon-nazwa" placeholder="Nazwa szablonu" class="block w-full border-gray-300 rounded-md shadow-sm mb-2 p-2">
+                <input type="text" id="szablon-weryfikacja" placeholder="Warunek weryfikacji (np. if {zaliczono-do} == 'lekkiego stopnia niepełnosprawności')" class="block w-full border-gray-300 rounded-md shadow-sm mb-2 p-2">
+                <textarea id="szablon-tekst" placeholder="Tekst szablonu..." rows="8" class="block w-full border-gray-300 rounded-md shadow-sm mb-2 p-2"></textarea>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="zapisz-szablon-btn" class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">Zapisz Szablon</button>
+                <button id="zamknij-szablony-btn" class="ml-2 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zarządzania Zmiennymi -->
+    <div id="modal-zmienne" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3 p-6">
+            <h3 class="text-2xl font-bold mb-4">Zarządzaj Zmiennymi Niestandardowymi</h3>
+            <div class="max-h-96 overflow-y-auto" id="lista-zmiennych"></div>
+            <div class="mt-4 border-t pt-4">
+                <input type="hidden" id="zmienna-id">
+                <input type="text" id="zmienna-nazwa" placeholder="Nazwa zmiennej (np. _lekarz)" class="block w-full border-gray-300 rounded-md shadow-sm mb-2 p-2">
+                <input type="text" id="zmienna-wartosc" placeholder="Wartość zmiennej" class="block w-full border-gray-300 rounded-md shadow-sm mb-2 p-2">
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="zapisz-zmienna-btn" class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">Zapisz Zmienną</button>
+                <button id="zamknij-zmienne-btn" class="ml-2 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zarządzania Listami (Wydane przez, Punkt 1) -->
+    <div id="modal-listy" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3 p-6">
+            <h3 class="text-2xl font-bold mb-4" id="modal-listy-tytul">Zarządzaj Opcjami</h3>
+            <div class="max-h-96 overflow-y-auto" id="lista-opcji"></div>
+             <div class="mt-4 border-t pt-4">
+                <input type="hidden" id="opcja-id">
+                <input type="text" id="opcja-wartosc" placeholder="Wartość opcji" class="block w-full border-gray-300 rounded-md shadow-sm mb-2 p-2">
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="zapisz-opcje-btn" class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">Zapisz Opcję</button>
+                <button id="zamknij-listy-btn" class="ml-2 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konfiguracja Firebase - UZUPEŁNIJ WŁASNYMI DANYMI
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Inicjalizacja Firebase
+        const statusText = document.getElementById('status-text');
+
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            statusText.textContent = "Błąd Konfiguracji: Uzupełnij dane Firebase w pliku index.html";
+            statusText.className = "text-center text-lg font-semibold mb-6 text-red-600";
+        } else {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+
+                // Logowanie anonimowe
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        console.log('Użytkownik zalogowany anonimowo:', user.uid);
+                        statusText.textContent = "Połączono";
+                        statusText.className = "text-center text-lg font-semibold mb-6 text-green-600";
+                    } else {
+                        auth.signInAnonymously().catch(error => {
+                            console.error('Błąd logowania anonimowego:', error);
+                             statusText.textContent = `Błąd Połączenia: ${error.message}`;
+                             statusText.className = "text-center text-lg font-semibold mb-6 text-red-600";
+                        });
+                    }
+                });
+             } catch (e) {
+                statusText.textContent = `Błąd Inicjalizacji: ${e.message}`;
+                statusText.className = "text-center text-lg font-semibold mb-6 text-red-600";
+             }
+        }
+
+        // Dalszy kod aplikacji
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const modals = {
+                szablony: document.getElementById('modal-szablony'),
+                zmienne: document.getElementById('modal-zmienne'),
+                listy: document.getElementById('modal-listy')
+            };
+
+            const modalButtons = {
+                openSzablony: document.getElementById('zarzadzaj-szablonami-btn'),
+                openZmienne: document.getElementById('zarzadzaj-zmiennymi-btn'),
+                openWydanePrzez: document.getElementById('zarzadzaj-wydane-przez'),
+                openPunkt1: document.getElementById('zarzadzaj-punkt1'),
+
+                closeSzablony: document.getElementById('zamknij-szablony-btn'),
+                closeZmienne: document.getElementById('zamknij-zmienne-btn'),
+                closeListy: document.getElementById('zamknij-listy-btn'),
+
+                saveSzablon: document.getElementById('zapisz-szablon-btn'),
+                saveZmienna: document.getElementById('zapisz-zmienna-btn'),
+                saveOpcja: document.getElementById('zapisz-opcje-btn')
+            };
+
+            const modalFields = {
+                // Szablony
+                szablonId: document.getElementById('szablon-id'),
+                szablonNazwa: document.getElementById('szablon-nazwa'),
+                szablonWeryfikacja: document.getElementById('szablon-weryfikacja'),
+                szablonTekst: document.getElementById('szablon-tekst'),
+                listaSzablonow: document.getElementById('lista-szablonow'),
+
+                // Zmienne
+                zmiennaId: document.getElementById('zmienna-id'),
+                zmiennaNazwa: document.getElementById('zmienna-nazwa'),
+                zmiennaWartosc: document.getElementById('zmienna-wartosc'),
+                listaZmiennych: document.getElementById('lista-zmiennych'),
+
+                // Listy
+                listyTytul: document.getElementById('modal-listy-tytul'),
+                opcjaId: document.getElementById('opcja-id'),
+                opcjaWartosc: document.getElementById('opcja-wartosc'),
+                listaOpcji: document.getElementById('lista-opcji'),
+                currentListCollection: ''
+            };
+
+            const formElements = {
+                numerSprawy: document.getElementById('numer-sprawy'),
+                dataZlozeniaWniosku: document.getElementById('data-zlozenia-wniosku'),
+                plec: document.getElementById('plec'),
+                imieNazwiskoDopelniacz: document.getElementById('imie-nazwisko-dopelniacz'),
+                imieNazwiskoBiernik: document.getElementById('imie-nazwisko-biernik'),
+                opiekunDopelniacz: document.getElementById('opiekun-dopelniacz'),
+                wniosekZlozony: document.getElementById('wniosek-zlozony'),
+                sekcjaPoprzednieOrzeczenie: document.getElementById('sekcja-poprzednie-orzeczenie'),
+                rodzajDecyzji: document.getElementById('rodzaj-decyzji'),
+                wydanePrzezLista: document.getElementById('wydane-przez-lista'),
+                numerStaregoOrzeczenia: document.getElementById('numer-starego-orzeczenia'),
+                dataStaregoOrzeczenia: document.getElementById('data-starego-orzeczenia'),
+                stopienStaregoOrzeczenia: document.getElementById('stopien-starego-orzeczenia'),
+                waznoscStaregoData: document.getElementById('waznosc-starego-data'),
+                waznoscStaregoTrwale: document.getElementById('waznosc-starego-trwale'),
+                dataKomisji: document.getElementById('data-komisji'),
+                specjalista: document.getElementById('specjalista'),
+                datyZaswiadczenKontener: document.getElementById('daty-zaswiadczen-lekarskich-kontener'),
+                dodajDateBtn: document.getElementById('dodaj-date-zaswiadczenia'),
+                zaocznie: document.getElementById('zaocznie'),
+                zaliczonoDo: document.getElementById('zaliczono-do'),
+                punkt1Lista: document.getElementById('punkt1-lista'),
+                punkt7: document.getElementById('punkt7'),
+                punkt8: document.getElementById('punkt8'),
+                waznoscNowegoData: document.getElementById('waznosc-nowego-data'),
+                waznoscNowegoTrwale: document.getElementById('waznosc-nowego-trwale'),
+                symbol1: document.getElementById('symbol-1'),
+                symbol2: document.getElementById('symbol-2'),
+                symbol3: document.getElementById('symbol-3'),
+                wyszukajBtn: document.getElementById('wyszukaj'),
+                zapiszBtn: document.getElementById('zapisz'),
+                wygenerowaneUzasadnienie: document.getElementById('wygenerowane-uzasadnienie')
+            };
+
+            const collectionName = 'orzeczenia';
+
+            // Logika warunkowa dla formularza
+            formElements.wniosekZlozony.addEventListener('change', () => {
+                if (formElements.wniosekZlozony.value === 'pierwszy raz') {
+                    formElements.sekcjaPoprzednieOrzeczenie.classList.add('hidden');
+                } else {
+                    formElements.sekcjaPoprzednieOrzeczenie.classList.remove('hidden');
+                }
+            });
+
+            formElements.waznoscStaregoTrwale.addEventListener('change', () => {
+                if (formElements.waznoscStaregoTrwale.checked) {
+                    formElements.waznoscStaregoData.value = '';
+                    formElements.waznoscStaregoData.disabled = true;
+                } else {
+                    formElements.waznoscStaregoData.disabled = false;
+                }
+            });
+
+            formElements.waznoscNowegoTrwale.addEventListener('change', () => {
+                if (formElements.waznoscNowegoTrwale.checked) {
+                    formElements.waznoscNowegoData.value = '';
+                    formElements.waznoscNowegoData.disabled = true;
+                } else {
+                    formElements.waznoscNowegoData.disabled = false;
+                }
+            });
+
+            formElements.zaocznie.addEventListener('change', () => {
+                if (formElements.zaocznie.checked) {
+                    formElements.waznoscNowegoData.value = '';
+                    formElements.waznoscNowegoData.disabled = true;
+                    formElements.waznoscNowegoTrwale.checked = false;
+                    formElements.waznoscNowegoTrwale.disabled = true;
+                } else {
+                    formElements.waznoscNowegoData.disabled = false;
+                    formElements.waznoscNowegoTrwale.disabled = false;
+                }
+            });
+
+            // Dodawanie pól na daty zaświadczeń
+            formElements.dodajDateBtn.addEventListener('click', () => {
+                 const newInput = document.createElement('input');
+                 newInput.type = 'text';
+                 newInput.name = 'data-zaswiadczenia';
+                 newInput.placeholder = 'dd.mm.rrrr';
+                 newInput.className = 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+                 formElements.datyZaswiadczenKontener.appendChild(newInput);
+            });
+
+            // Zapis danych
+            formElements.zapiszBtn.addEventListener('click', async () => {
+                const numerSprawy = formElements.numerSprawy.value.trim();
+                if (!numerSprawy) {
+                    alert('Numer sprawy jest wymagany!');
+                    return;
+                }
+
+                const datyZaswiadczen = Array.from(formElements.datyZaswiadczenKontener.querySelectorAll('input'))
+                                             .map(input => input.value)
+                                             .filter(value => value);
+
+                const data = {
+                    'numer-sprawy': numerSprawy,
+                    'data-zlozenia-wniosku': formElements.dataZlozeniaWniosku.value,
+                    'plec': formElements.plec.value,
+                    'imie-nazwisko-dopelniacz': formElements.imieNazwiskoDopelniacz.value,
+                    'imie-nazwisko-biernik': formElements.imieNazwiskoBiernik.value,
+                    'opiekun-dopelniacz': formElements.opiekunDopelniacz.value,
+                    'wniosek-zlozony': formElements.wniosekZlozony.value,
+                    'rodzaj-decyzji': formElements.rodzajDecyzji.value,
+                    'wydane-przez-lista': formElements.wydanePrzezLista.value,
+                    'numer-starego-orzeczenia': formElements.numerStaregoOrzeczenia.value,
+                    'data-starego-orzeczenia': formElements.dataStaregoOrzeczenia.value,
+                    'stopien-starego-orzeczenia': formElements.stopienStaregoOrzeczenia.value,
+                    'waznosc-starego-data': formElements.waznoscStaregoData.value,
+                    'waznosc-starego-trwale': formElements.waznoscStaregoTrwale.checked,
+                    'data-komisji': formElements.dataKomisji.value,
+                    'specjalista': formElements.specjalista.value,
+                    'daty-zaswiadczen': datyZaswiadczen,
+                    'zaocznie': formElements.zaocznie.checked,
+                    'zaliczono-do': formElements.zaliczonoDo.value,
+                    'punkt1-lista': formElements.punkt1Lista.value,
+                    'punkt7': formElements.punkt7.checked,
+                    'punkt8': formElements.punkt8.checked,
+                    'waznosc-nowego-data': formElements.waznoscNowegoData.value,
+                    'waznosc-nowego-trwale': formElements.waznoscNowegoTrwale.checked,
+                    'symbol-1': formElements.symbol1.value,
+                    'symbol-2': formElements.symbol2.value,
+                    'symbol-3': formElements.symbol3.value,
+                };
+
+                try {
+                    await db.collection(collectionName).doc(numerSprawy).set(data);
+                    alert('Dane zostały pomyślnie zapisane!');
+                } catch (error) {
+                    console.error('Błąd zapisu danych:', error);
+                    alert('Wystąpił błąd podczas zapisu danych.');
+                }
+            });
+
+            // Wyszukiwanie i ładowanie danych
+            formElements.wyszukajBtn.addEventListener('click', async () => {
+                const numerSprawy = formElements.numerSprawy.value.trim();
+                if (!numerSprawy) {
+                    alert('Proszę podać numer sprawy.');
+                    return;
+                }
+
+                try {
+                    const doc = await db.collection(collectionName).doc(numerSprawy).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+
+                        formElements.dataZlozeniaWniosku.value = data['data-zlozenia-wniosku'] || '';
+                        formElements.plec.value = data['plec'] || 'Pana';
+                        formElements.imieNazwiskoDopelniacz.value = data['imie-nazwisko-dopelniacz'] || '';
+                        formElements.imieNazwiskoBiernik.value = data['imie-nazwisko-biernik'] || '';
+                        formElements.opiekunDopelniacz.value = data['opiekun-dopelniacz'] || '';
+                        formElements.wniosekZlozony.value = data['wniosek-zlozony'] || 'pierwszy raz';
+                        formElements.rodzajDecyzji.value = data['rodzaj-decyzji'] || 'orzeczenia Nr';
+                        formElements.wydanePrzezLista.value = data['wydane-przez-lista'] || '';
+                        formElements.numerStaregoOrzeczenia.value = data['numer-starego-orzeczenia'] || '';
+                        formElements.dataStaregoOrzeczenia.value = data['data-starego-orzeczenia'] || '';
+                        formElements.stopienStaregoOrzeczenia.value = data['stopien-starego-orzeczenia'] || 'lekkiego stopnia niepełnosprawności';
+                        formElements.waznoscStaregoData.value = data['waznosc-starego-data'] || '';
+                        formElements.waznoscStaregoTrwale.checked = data['waznosc-starego-trwale'] || false;
+                        formElements.dataKomisji.value = data['data-komisji'] || '';
+                        formElements.specjalista.value = data['specjalista'] || 'doradca zawodowy';
+
+                        formElements.datyZaswiadczenKontener.innerHTML = '';
+                        if (data['daty-zaswiadczen'] && Array.isArray(data['daty-zaswiadczen'])) {
+                            data['daty-zaswiadczen'].forEach(dataStr => {
+                                const newInput = document.createElement('input');
+                                newInput.type = 'text';
+                                newInput.name = 'data-zaswiadczenia';
+                                newInput.placeholder = 'dd.mm.rrrr';
+                                newInput.className = 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+                                newInput.value = dataStr;
+                                formElements.datyZaswiadczenKontener.appendChild(newInput);
+                            });
+                        }
+                         if(formElements.datyZaswiadczenKontener.children.length === 0){
+                              const newInput = document.createElement('input');
+                                newInput.type = 'text';
+                                newInput.name = 'data-zaswiadczenia';
+                                newInput.placeholder = 'dd.mm.rrrr';
+                                newInput.className = 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+                                formElements.datyZaswiadczenKontener.appendChild(newInput);
+                         }
+
+                        formElements.zaocznie.checked = data['zaocznie'] || false;
+                        formElements.zaliczonoDo.value = data['zaliczono-do'] || 'lekkiego stopnia niepełnosprawności';
+                        formElements.punkt1Lista.value = data['punkt1-lista'] || '';
+                        formElements.punkt7.checked = data['punkt7'] || false;
+                        formElements.punkt8.checked = data['punkt8'] || false;
+                        formElements.waznoscNowegoData.value = data['waznosc-nowego-data'] || '';
+                        formElements.waznoscNowegoTrwale.checked = data['waznosc-nowego-trwale'] || false;
+                        formElements.symbol1.value = data['symbol-1'] || '';
+                        formElements.symbol2.value = data['symbol-2'] || '';
+                        formElements.symbol3.value = data['symbol-3'] || '';
+
+                        // Uruchomienie eventów, aby zaktualizować UI
+                        formElements.wniosekZlozony.dispatchEvent(new Event('change'));
+                        formElements.waznoscStaregoTrwale.dispatchEvent(new Event('change'));
+                        formElements.zaocznie.dispatchEvent(new Event('change'));
+                        formElements.waznoscNowegoTrwale.dispatchEvent(new Event('change'));
+
+                        alert('Dane zostały załadowane.');
+                    } else {
+                        alert('Nie znaleziono danych dla podanego numeru sprawy.');
+                    }
+                } catch (error) {
+                    console.error('Błąd odczytu danych:', error);
+                    alert('Wystąpił błąd podczas odczytu danych.');
+                }
+            });
+
+            // --- LOGIKA MODALI ---
+
+            // Otwieranie i zamykanie modali
+            modalButtons.openSzablony.addEventListener('click', () => { loadSzablony(); modals.szablony.classList.add('active'); });
+            modalButtons.closeSzablony.addEventListener('click', () => modals.szablony.classList.remove('active'));
+
+            modalButtons.openZmienne.addEventListener('click', () => { loadZmienne(); modals.zmienne.classList.add('active'); });
+            modalButtons.closeZmienne.addEventListener('click', () => modals.zmienne.classList.remove('active'));
+
+            modalButtons.openWydanePrzez.addEventListener('click', () => openListModal('wydane_przez', 'Zarządzaj Opcjami "Wydane Przez"'));
+            modalButtons.openPunkt1.addEventListener('click', () => openListModal('punkt_1', 'Zarządzaj Opcjami "Punkt 1"'));
+            modalButtons.closeListy.addEventListener('click', () => modals.listy.classList.remove('active'));
+
+            function openListModal(collection, title) {
+                modalFields.currentListCollection = collection;
+                modalFields.listyTytul.textContent = title;
+                loadListOptions();
+                modals.listy.classList.add('active');
+            }
+
+            // Zarządzanie Szablonami (CRUD)
+            async function loadSzablony() {
+                const snapshot = await db.collection('szablony').get();
+                modalFields.listaSzablonow.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'p-2 border-b flex justify-between items-center';
+                    div.innerHTML = `<span>${data.nazwa}</span>`;
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edytuj';
+                    editBtn.className = 'bg-blue-500 text-white px-2 py-1 rounded-md text-sm';
+                    editBtn.onclick = () => {
+                        modalFields.szablonId.value = doc.id;
+                        modalFields.szablonNazwa.value = data.nazwa;
+                        modalFields.szablonWeryfikacja.value = data.weryfikacja;
+                        modalFields.szablonTekst.value = data.tekst;
+                    };
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Usuń';
+                    deleteBtn.className = 'bg-red-500 text-white px-2 py-1 rounded-md text-sm ml-2';
+                    deleteBtn.onclick = async () => {
+                        if (confirm('Czy na pewno chcesz usunąć ten szablon?')) {
+                            await db.collection('szablony').doc(doc.id).delete();
+                            loadSzablony();
+                        }
+                    };
+                    const btnContainer = document.createElement('div');
+                    btnContainer.appendChild(editBtn);
+                    btnContainer.appendChild(deleteBtn);
+                    div.appendChild(btnContainer);
+                    modalFields.listaSzablonow.appendChild(div);
+                });
+            }
+
+            modalButtons.saveSzablon.addEventListener('click', async () => {
+                const id = modalFields.szablonId.value;
+                const data = {
+                    nazwa: modalFields.szablonNazwa.value,
+                    weryfikacja: modalFields.szablonWeryfikacja.value,
+                    tekst: modalFields.szablonTekst.value,
+                };
+                if (id) {
+                    await db.collection('szablony').doc(id).set(data, { merge: true });
+                } else {
+                    await db.collection('szablony').add(data);
+                }
+                modalFields.szablonId.value = '';
+                modalFields.szablonNazwa.value = '';
+                modalFields.szablonWeryfikacja.value = '';
+                modalFields.szablonTekst.value = '';
+                loadSzablony();
+            });
+
+            // Zarządzanie Zmiennymi (CRUD)
+            async function loadZmienne() {
+                const snapshot = await db.collection('zmienne').get();
+                modalFields.listaZmiennych.innerHTML = '';
+                 snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'p-2 border-b flex justify-between items-center';
+                    div.innerHTML = `<span><strong>${data.nazwa}</strong>: ${data.wartosc}</span>`;
+                     const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edytuj';
+                    editBtn.className = 'bg-blue-500 text-white px-2 py-1 rounded-md text-sm';
+                    editBtn.onclick = () => {
+                        modalFields.zmiennaId.value = doc.id;
+                        modalFields.zmiennaNazwa.value = data.nazwa;
+                        modalFields.zmiennaWartosc.value = data.wartosc;
+                    };
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Usuń';
+                    deleteBtn.className = 'bg-red-500 text-white px-2 py-1 rounded-md text-sm ml-2';
+                    deleteBtn.onclick = async () => {
+                        if (confirm('Czy na pewno chcesz usunąć tę zmienną?')) {
+                            await db.collection('zmienne').doc(doc.id).delete();
+                            loadZmienne();
+                        }
+                    };
+                     const btnContainer = document.createElement('div');
+                    btnContainer.appendChild(editBtn);
+                    btnContainer.appendChild(deleteBtn);
+                    div.appendChild(btnContainer);
+                    modalFields.listaZmiennych.appendChild(div);
+                });
+            }
+
+            modalButtons.saveZmienna.addEventListener('click', async () => {
+                const id = modalFields.zmiennaId.value;
+                 const data = {
+                    nazwa: modalFields.zmiennaNazwa.value,
+                    wartosc: modalFields.zmiennaWartosc.value,
+                };
+                if (id) {
+                    await db.collection('zmienne').doc(id).set(data, { merge: true });
+                } else {
+                    await db.collection('zmienne').add(data);
+                }
+                modalFields.zmiennaId.value = '';
+                modalFields.zmiennaNazwa.value = '';
+                modalFields.zmiennaWartosc.value = '';
+                loadZmienne();
+            });
+
+             // Zarządzanie Listami (CRUD)
+            async function loadListOptions() {
+                const collection = modalFields.currentListCollection;
+                if (!collection) return;
+
+                const snapshot = await db.collection(collection).get();
+                modalFields.listaOpcji.innerHTML = '';
+                 snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'p-2 border-b flex justify-between items-center';
+                    div.innerHTML = `<span>${data.wartosc}</span>`;
+                     const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edytuj';
+                    editBtn.className = 'bg-blue-500 text-white px-2 py-1 rounded-md text-sm';
+                    editBtn.onclick = () => {
+                        modalFields.opcjaId.value = doc.id;
+                        modalFields.opcjaWartosc.value = data.wartosc;
+                    };
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Usuń';
+                    deleteBtn.className = 'bg-red-500 text-white px-2 py-1 rounded-md text-sm ml-2';
+                    deleteBtn.onclick = async () => {
+                        if (confirm('Czy na pewno chcesz usunąć tę opcję?')) {
+                            await db.collection(collection).doc(doc.id).delete();
+                            loadListOptions();
+                            await loadAllListOptionsIntoSelects();
+                        }
+                    };
+                     const btnContainer = document.createElement('div');
+                    btnContainer.appendChild(editBtn);
+                    btnContainer.appendChild(deleteBtn);
+                    div.appendChild(btnContainer);
+                    modalFields.listaOpcji.appendChild(div);
+                });
+            }
+             modalButtons.saveOpcja.addEventListener('click', async () => {
+                 const collection = modalFields.currentListCollection;
+                if (!collection) return;
+
+                const id = modalFields.opcjaId.value;
+                const data = { wartosc: modalFields.opcjaWartosc.value };
+
+                if (id) {
+                    await db.collection(collection).doc(id).set(data, { merge: true });
+                } else {
+                    await db.collection(collection).add(data);
+                }
+                modalFields.opcjaId.value = '';
+                modalFields.opcjaWartosc.value = '';
+                loadListOptions();
+                await loadAllListOptionsIntoSelects();
+            });
+
+             // Ładowanie opcji do selectów przy starcie
+            async function loadAllListOptionsIntoSelects() {
+                const wydanePrzezSnapshot = await db.collection('wydane_przez').get();
+                formElements.wydanePrzezLista.innerHTML = '';
+                wydanePrzezSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.data().wartosc;
+                    option.textContent = doc.data().wartosc;
+                    formElements.wydanePrzezLista.appendChild(option);
+                });
+
+                const punkt1Snapshot = await db.collection('punkt_1').get();
+                formElements.punkt1Lista.innerHTML = '';
+                punkt1Snapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.data().wartosc;
+                    option.textContent = doc.data().wartosc;
+                    formElements.punkt1Lista.appendChild(option);
+                });
+            }
+
+            loadAllListOptionsIntoSelects();
+
+            // --- SILNIK GENEROWANIA UZASADNIEŃ ---
+            const allInputs = document.querySelectorAll('input, select, textarea');
+            allInputs.forEach(input => {
+                input.addEventListener('change', generateUzasadnienie);
+                input.addEventListener('keyup', generateUzasadnienie);
+            });
+
+            async function generateUzasadnienie() {
+                // 1. Zbierz wszystkie dane z formularza
+                const formData = {};
+                for (const key in formElements) {
+                    const element = formElements[key];
+                    if (element.id) {
+                         const fieldName = element.id.replace(/-/g, '_');
+                        if (element.type === 'checkbox') {
+                            formData[fieldName] = element.checked;
+                        } else {
+                            formData[fieldName] = element.value;
+                        }
+                    }
+                }
+                 const datyZaswiadczen = Array.from(formElements.datyZaswiadczenKontener.querySelectorAll('input'))
+                                             .map(input => input.value)
+                                             .filter(value => value);
+                formData['daty_zaswiadczen'] = datyZaswiadczen.join(', ');
+
+                // 2. Pobierz zmienne niestandardowe
+                const zmienneSnapshot = await db.collection('zmienne').get();
+                const customVariables = {};
+                zmienneSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    customVariables[data.nazwa] = data.wartosc;
+                });
+
+                // 3. Połącz dane (zmienne niestandardowe mają priorytet)
+                const context = { ...formData, ...customVariables };
+
+                // 4. Znajdź pasujący szablon
+                const szablonySnapshot = await db.collection('szablony').orderBy('nazwa').get();
+                let finalTekst = "Brak spełnionych wymagań.";
+
+                for (const doc of szablonySnapshot.docs) {
+                    const szablon = doc.data();
+                    const weryfikacja = szablon.weryfikacja || 'if true';
+
+                    try {
+                        const condition = weryfikacja.substring(3).trim(); // Usuń 'if '
+                        if (evaluateCondition(condition, context)) {
+                            finalTekst = szablon.tekst;
+                            break;
+                        }
+                    } catch (e) {
+                        console.error(`Błąd w warunku weryfikacji szablonu "${szablon.nazwa}":`, e);
+                    }
+                }
+
+                // 5. Przetwórz tekst szablonu (zmienne i warunki if)
+                const processedText = processTemplate(finalTekst, context);
+                formElements.wygenerowaneUzasadnienie.value = processedText;
+            }
+
+            function evaluateCondition(condition, context) {
+                 const keys = Object.keys(context);
+                 const values = Object.values(context);
+                 const func = new Function(...keys, `return ${condition};`);
+                 return func(...values);
+            }
+
+            function processTemplate(template, context) {
+                let text = template;
+
+                // Handle nested if statements by repeatedly processing the innermost ones
+                while (/{if\s+(.*?)}/.test(text)) {
+                    text = text.replace(/{if\s+(.*?)}/g, (match, condition) => {
+                        try {
+                            return evaluateCondition(condition, context) ? '' : '{--CONDITION-FALSE--}';
+                        } catch (e) {
+                            return '{--INVALID-CONDITION--}';
+                        }
+                    });
+
+                     text = text.replace(/((?:(?!{if\s+(.*?)}).)*?){--CONDITION-FALSE--}(.*?){else}(.*?){endif}/gs, '$1$4');
+                     text = text.replace(/((?:(?!{if\s+(.*?)}).)*?){else}(.*?){--CONDITION-FALSE--}(.*?){endif}/gs, '$1$3');
+                     text = text.replace(/((?:(?!{if\s+(.*?)}).)*?){--CONDITION-FALSE--}(.*?){endif}/gs, '$1');
+                }
+                 text = text.replace(/{endif}|{else}/g, '');
+
+                // Przetwarzanie zmiennych {}
+                text = text.replace(/{(\w+)}/g, (match, varName) => {
+                    return context[varName] !== undefined ? context[varName] : `{${varName}}`;
+                });
+
+                return text;
+            }
+
+            generateUzasadnienie(); // Wywołaj raz na starcie
+        });
+    </script>
+</body>
+</html>
