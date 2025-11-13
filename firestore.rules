@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Zezwalaj na pełne zarządzanie kolekcją 'orzeczenia' tylko dla uwierzytelnionych użytkowników.
+    match /orzeczenia/{orzeczenieId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Zezwalaj na pełne zarządzanie kolekcją 'szablony' tylko dla uwierzytelnionych użytkowników.
+    match /szablony/{szablonId} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+
+    // Zezwalaj na pełne zarządzanie kolekcją 'zmienne' tylko dla uwierzytelnionych użytkowników.
+    match /zmienne/{zmiennaId} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+  }
+}
